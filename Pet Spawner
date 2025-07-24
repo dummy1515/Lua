@@ -1,0 +1,139 @@
+local screenGui = script.ParentS
+
+-- Main Frame
+local frame = Instance.new("Frame")
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+frame.Size = UDim2.new(0.9, 0, 0, 300)
+frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+frame.ClipsDescendants = true
+
+-- Corner
+local corner = Instance.new("UICorner", frame)
+corner.CornerRadius = UDim.new(0, 15)
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -60, 0, 40)
+title.Position = UDim2.new(0, 20, 0, 10)
+title.BackgroundTransparency = 1
+title.Text = "Pet & Seed Spawner | New Update"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 22
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = frame
+
+-- Close Button
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 40, 0, 40)
+closeButton.Position = UDim2.new(1, -45, 0, 10)
+closeButton.Text = "X"
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextSize = 22
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+closeButton.BorderSizePixel = 0
+closeButton.Parent = frame
+Instance.new("UICorner", closeButton).CornerRadius = UDim.new(0, 10)
+
+-- Generate Button
+local generateBtn = Instance.new("TextButton")
+generateBtn.Size = UDim2.new(0.8, 0, 0, 50)
+generateBtn.Position = UDim2.new(0.1, 0, 0, 60)
+generateBtn.Text = "Generate Dupe Script"
+generateBtn.Font = Enum.Font.GothamBold
+generateBtn.TextSize = 22
+generateBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+generateBtn.BackgroundColor3 = Color3.fromRGB(0, 160, 255)
+generateBtn.BorderSizePixel = 0
+generateBtn.Parent = frame
+Instance.new("UICorner", generateBtn).CornerRadius = UDim.new(0, 25)
+
+-- Progress Bar Container
+local progressBarBg = Instance.new("Frame")
+progressBarBg.Size = UDim2.new(0.8, 0, 0, 40)
+progressBarBg.Position = UDim2.new(0.1, 0, 0, 130)
+progressBarBg.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+progressBarBg.BorderSizePixel = 0
+progressBarBg.Parent = frame
+Instance.new("UICorner", progressBarBg).CornerRadius = UDim.new(0, 20)
+
+-- Fill
+local progressFill = Instance.new("Frame")
+progressFill.Size = UDim2.new(0, 0, 1, 0)
+progressFill.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+progressFill.BorderSizePixel = 0
+progressFill.Parent = progressBarBg
+Instance.new("UICorner", progressFill).CornerRadius = UDim.new(0, 20)
+
+-- Progress Label
+local progressLabel = Instance.new("TextLabel")
+progressLabel.Size = UDim2.new(1, 0, 1, 0)
+progressLabel.BackgroundTransparency = 1
+progressLabel.Text = "0%"
+progressLabel.Font = Enum.Font.GothamBold
+progressLabel.TextSize = 18
+progressLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+progressLabel.Parent = progressBarBg
+
+-- Status
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1, -40, 0, 30)
+statusLabel.Position = UDim2.new(0, 20, 0, 180)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = ""
+statusLabel.Font = Enum.Font.Code
+statusLabel.TextSize = 18
+statusLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+statusLabel.Parent = frame
+
+-- Tip
+local tipLabel = Instance.new("TextLabel")
+tipLabel.Size = UDim2.new(1, -40, 0, 30)
+tipLabel.Position = UDim2.new(0, 20, 0, 210)
+tipLabel.BackgroundTransparency = 1
+tipLabel.Text = "While waiting, you can use this script 👉"
+tipLabel.Font = Enum.Font.Gotham
+tipLabel.TextSize = 18
+tipLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+tipLabel.TextXAlignment = Enum.TextXAlignment.Left
+tipLabel.Parent = frame
+
+-- NO-Lag Script Button
+local noLagButton = Instance.new("TextButton")
+noLagButton.Size = UDim2.new(0, 160, 0, 40)
+noLagButton.Position = UDim2.new(1, -180, 1, -50)
+noLagButton.Text = "NO-Lag Script"
+noLagButton.Font = Enum.Font.GothamBold
+noLagButton.TextSize = 18
+noLagButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+noLagButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+noLagButton.BorderSizePixel = 0
+noLagButton.Parent = frame
+Instance.new("UICorner", noLagButton).CornerRadius = UDim.new(0, 20)
+
+-- Close UI
+closeButton.MouseButton1Click:Connect(function()
+	screenGui.Enabled = false
+end)
+
+-- Animation
+local function startProgress()
+	for i = 1, 100 do
+		progressFill:TweenSize(UDim2.new(i/100, 0, 1, 0), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.03, true)
+		progressLabel.Text = i .. "%"
+		wait(0.03)
+	end
+
+	-- After loading complete
+	progressLabel.Text = "The Game Will Restart, Please wait to load the SCRIPT"
+	progressLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+	progressLabel.Font = Enum.Font.GothamBold
+	statusLabel.Text = "Analyzing Dupe File..."
+end
+
+generateBtn.MouseButton1Click:Connect(startProgress)
