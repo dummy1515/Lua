@@ -1,136 +1,214 @@
-Got it — you're using **KRNL**, so you're executing the script externally via an executor. For the UI to **appear properly in KRNL**, it needs to:
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
 
-1. **Wait for `PlayerGui` to load**
-2. **Parent the GUI to `game.Players.LocalPlayer:WaitForChild("PlayerGui")`**
-3. Be fully **self-contained** (including all GUI objects in code)
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "DarkSpawnerUI"
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = player:WaitForChild("PlayerGui")
 
----
+-- Main Frame (smaller & centered)
+local MainFrame = Instance.new("Frame")
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.Size = UDim2.new(0.6, 0, 0.4, 0) -- smaller for mobile/pc
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
 
-Here’s a **fixed and KRNL-compatible version** of your fake loading UI with **smooth animation**, **mobile-friendly layout**, and **working GUI display**:
+-- Top Bar
+local TopBar = Instance.new("Frame")
+TopBar.Size = UDim2.new(1, 0, 0.12, 0)
+TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+TopBar.BorderSizePixel = 0
+TopBar.Parent = MainFrame
 
-### ✅ Full Script (KRNL-friendly)
+-- Title Text
+local Title = Instance.new("TextLabel")
+Title.Text = "Dark Spawner"
+Title.Font = Enum.Font.SourceSansSemibold
+Title.TextSize = 18
+Title.TextColor3 = Color3.fromRGB(240, 240, 240)
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.Size = UDim2.new(0.7, 0, 1, 0)
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TopBar
 
-```lua
--- Wait for the game to load
-repeat wait() until game:IsLoaded()
+-- Icon Buttons
+local IconContainer = Instance.new("Frame")
+IconContainer.Size = UDim2.new(0, 85, 1, 0)
+IconContainer.Position = UDim2.new(1, -90, 0, 0)
+IconContainer.BackgroundTransparency = 1
+IconContainer.Parent = TopBar
 
--- Make sure PlayerGui is available
-local player = game.Players.LocalPlayer
-local gui = Instance.new("ScreenGui")
-gui.Name = "FakeDupeGUI"
-gui.ResetOnSpawn = false
-gui.Parent = player:WaitForChild("PlayerGui")
+local Layout = Instance.new("UIListLayout")
+Layout.FillDirection = Enum.FillDirection.Horizontal
+Layout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+Layout.VerticalAlignment = Enum.VerticalAlignment.Center
+Layout.Padding = UDim.new(0, 6)
+Layout.Parent = IconContainer
 
--- Frame
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0.5, 0, 0.4, 0)
-frame.Position = UDim2.new(0.25, 0, 0.3, 0)
-frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-frame.BorderSizePixel = 0
-frame.Parent = gui
+local function createIconButton(parent, assetId, onClick)
+	local button = Instance.new("ImageButton")
+	button.Image = "rbxassetid://" .. assetId
+	button.BackgroundTransparency = 1
+	button.Size = UDim2.new(0, 14, 0, 14)
+	button.ImageColor3 = Color3.fromRGB(255, 255, 255)
+	button.Parent = parent
+	button.MouseButton1Click:Connect(onClick)
+end
 
--- UICorner for round edges
-local round = Instance.new("UICorner", frame)
-round.CornerRadius = UDim.new(0, 10)
+createIconButton(IconContainer, "7733960981", function()
+	print("Search clicked")
+end)
+
+createIconButton(IconContainer, "6031280882", function()
+	print("Settings clicked")
+end)
+
+createIconButton(IconContainer, "6031094678", function()
+	ScreenGui:Destroy()
+end)
+
+-- Dragging
+local function makeDraggable(frame, handle)
+	local dragging, dragInput, dragStart, startPos = false
+
+	handle.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = true
+			dragStart = input.Position
+			startPos = frame.Position
+
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
+
+	handle.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement then
+			dragInput = input
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(input)
+		if dragging and input == dragInput then
+			local delta = input.Position - dragStart
+			frame.Position = UDim2.new(
+				startPos.X.Scale,
+				startPos.X.Offset + delta.X,
+				startPos.Y.Scale,
+				startPos.Y.Offset + delta.Y
+			)
+		end
+	end)
+end
+
+if not UserInputService.TouchEnabled then
+	makeDraggable(MainFrame, TopBar)
+end
+
+-- Pet Seed Area
+local PetSeedFrame = Instance.new("Frame")
+PetSeedFrame.Size = UDim2.new(0.9, 0, 0.55, 0)
+PetSeedFrame.Position = UDim2.new(0.05, 0, 0.25, 0)
+PetSeedFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+PetSeedFrame.BorderSizePixel = 0
+PetSeedFrame.Parent = MainFrame
 
 -- Title
-local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1, -40, 0, 40)
-title.Position = UDim2.new(0, 20, 0, 10)
-title.BackgroundTransparency = 1
-title.Text = "Pet & Seed Spawner | New Update"
-title.TextColor3 = Color3.new(1, 1, 1)
-title.Font = Enum.Font.SourceSansBold
-title.TextSize = 22
-title.TextXAlignment = Enum.TextXAlignment.Left
+local PetSeedTitle = Instance.new("TextLabel")
+PetSeedTitle.Text = "Pet & Seed Spawner  |  New Update"
+PetSeedTitle.Font = Enum.Font.SourceSansSemibold
+PetSeedTitle.TextSize = 16
+PetSeedTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+PetSeedTitle.BackgroundTransparency = 1
+PetSeedTitle.Position = UDim2.new(0, 0, 0.05, 0)
+PetSeedTitle.Size = UDim2.new(1, 0, 0.15, 0)
+PetSeedTitle.TextXAlignment = Enum.TextXAlignment.Center
+PetSeedTitle.Parent = PetSeedFrame
 
--- Button
-local mainBtn = Instance.new("TextButton", frame)
-mainBtn.Size = UDim2.new(0.8, 0, 0.15, 0)
-mainBtn.Position = UDim2.new(0.1, 0, 0.3, 0)
-mainBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-mainBtn.Text = "Generate Dupe Script"
-mainBtn.TextColor3 = Color3.new(1, 1, 1)
-mainBtn.Font = Enum.Font.SourceSansBold
-mainBtn.TextSize = 20
-Instance.new("UICorner", mainBtn)
+-- Dupe Button
+local DupeButton = Instance.new("TextButton")
+DupeButton.Text = "Generate Dupe Script"
+DupeButton.Font = Enum.Font.SourceSansBold
+DupeButton.TextSize = 14
+DupeButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+DupeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+DupeButton.Size = UDim2.new(1, 0, 0.2, 0)
+DupeButton.Position = UDim2.new(0, 0, 0.25, 0)
+DupeButton.Parent = PetSeedFrame
 
--- Progress bar BG
-local progressBg = Instance.new("Frame", frame)
-progressBg.Size = UDim2.new(0.8, 0, 0.08, 0)
-progressBg.Position = UDim2.new(0.1, 0, 0.5, 0)
-progressBg.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-Instance.new("UICorner", progressBg)
+-- Loading Bar Background
+local LoadingBarBack = Instance.new("Frame")
+LoadingBarBack.Size = UDim2.new(1, 0, 0.08, 0)
+LoadingBarBack.Position = UDim2.new(0, 0, 0.48, 0)
+LoadingBarBack.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+LoadingBarBack.BorderSizePixel = 0
+LoadingBarBack.Parent = PetSeedFrame
 
--- Progress bar fill
-local progressFill = Instance.new("Frame", progressBg)
-progressFill.Size = UDim2.new(0, 0, 1, 0)
-progressFill.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-Instance.new("UICorner", progressFill)
+-- Fill
+local LoadingBarFill = Instance.new("Frame")
+LoadingBarFill.Size = UDim2.new(0, 0, 1, 0)
+LoadingBarFill.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+LoadingBarFill.BorderSizePixel = 0
+LoadingBarFill.Parent = LoadingBarBack
 
--- Status text
-local status = Instance.new("TextLabel", frame)
-status.Size = UDim2.new(1, -40, 0, 25)
-status.Position = UDim2.new(0, 20, 0.63, 0)
-status.BackgroundTransparency = 1
-status.TextColor3 = Color3.fromRGB(0, 255, 0)
-status.Text = "Hashing Data Files..."
-status.Font = Enum.Font.SourceSans
-status.TextSize = 18
-status.TextXAlignment = Enum.TextXAlignment.Left
+-- Loading Percent (inside bar)
+local LoadingPercent = Instance.new("TextLabel")
+LoadingPercent.Text = "0%"
+LoadingPercent.Font = Enum.Font.SourceSansBold
+LoadingPercent.TextSize = 14
+LoadingPercent.TextColor3 = Color3.fromRGB(255, 255, 255)
+LoadingPercent.BackgroundTransparency = 1
+LoadingPercent.AnchorPoint = Vector2.new(1, 0.5)
+LoadingPercent.Position = UDim2.new(1, -5, 0.5, 0)
+LoadingPercent.Size = UDim2.new(0, 40, 0, 20)
+LoadingPercent.TextXAlignment = Enum.TextXAlignment.Right
+LoadingPercent.Visible = false
+LoadingPercent.Parent = LoadingBarFill
 
--- Hint script
-local hint = Instance.new("TextLabel", frame)
-hint.Size = UDim2.new(1, -40, 0, 25)
-hint.Position = UDim2.new(0, 20, 0.75, 0)
-hint.BackgroundTransparency = 1
-hint.TextColor3 = Color3.new(1, 1, 0.6)
-hint.Text = "While waiting, you can use this script 👉"
-hint.Font = Enum.Font.SourceSans
-hint.TextSize = 16
-hint.TextXAlignment = Enum.TextXAlignment.Left
+-- Sub Text (left)
+local SubText = Instance.new("TextLabel")
+SubText.Text = "While waiting, you can use this script 👉"
+SubText.Font = Enum.Font.SourceSans
+SubText.TextSize = 14
+SubText.TextColor3 = Color3.fromRGB(255, 255, 0)
+SubText.BackgroundTransparency = 1
+SubText.Position = UDim2.new(0, 0, 0.85, 0)
+SubText.Size = UDim2.new(0.6, 0, 0.1, 0)
+SubText.TextXAlignment = Enum.TextXAlignment.Left
+SubText.Parent = PetSeedFrame
 
--- No-Lag button
-local noLagBtn = Instance.new("TextButton", frame)
-noLagBtn.Size = UDim2.new(0.3, 0, 0.1, 0)
-noLagBtn.Position = UDim2.new(0.65, 0, 0.85, 0)
-noLagBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-noLagBtn.Text = "NO-Lag Script"
-noLagBtn.TextColor3 = Color3.new(1, 1, 1)
-noLagBtn.Font = Enum.Font.SourceSansBold
-noLagBtn.TextSize = 16
-Instance.new("UICorner", noLagBtn)
+-- No-Lag Button (right)
+local NoLagButton = Instance.new("TextButton")
+NoLagButton.Text = "NO-Lag Script"
+NoLagButton.Font = Enum.Font.SourceSansBold
+NoLagButton.TextSize = 14
+NoLagButton.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
+NoLagButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+NoLagButton.Size = UDim2.new(0.4, 0, 0.1, 0)
+NoLagButton.Position = UDim2.new(0.6, 0, 0.85, 0)
+NoLagButton.Parent = PetSeedFrame
 
--- Smooth progress
-mainBtn.MouseButton1Click:Connect(function()
-    mainBtn.Visible = false
-    for i = 0, 100, 1 do
-        progressFill.Size = UDim2.new(i / 100, 0, 1, 0)
-        status.Text = "Loading... " .. i .. "%"
-        wait(0.03)
-    end
+-- Loading Animation
+DupeButton.MouseButton1Click:Connect(function()
+	LoadingBarFill.Size = UDim2.new(0, 0, 1, 0)
+	LoadingPercent.Visible = true
+	LoadingPercent.Text = "0%"
 
-    -- After 100%
-    status.Text = "Analyzing Dupe File..."
-    progressFill.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-    progressBg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	local totalTime = math.random(60, 90)
+	for i = 0, 100 do
+		LoadingBarFill.Size = UDim2.new(i / 100, 0, 1, 0)
+		LoadingBarFill.BackgroundColor3 = Color3.fromHSV(i / 100, 1, 1)
+		LoadingPercent.Text = i .. "%"
+		wait(totalTime / 100)
+	end
 
-    wait(2)
-    progressBg:Destroy()
-    status.Text = "The Game Will Restart, Please wait to load the SCRIPT"
-    status.TextColor3 = Color3.fromRGB(0, 255, 0)
+	LoadingPercent.Text = "✅"
 end)
-```
-
----
-
-### 💡 Notes:
-
-* ✅ Fully works in KRNL
-* ✅ Smooth loading animation
-* ✅ UI shows even if game is still loading
-* ✅ Mobile-safe scaling
-
----
-
-Would you like this exported to a file (`.txt` or `.lua`) for easier execution?
